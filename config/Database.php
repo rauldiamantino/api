@@ -20,11 +20,7 @@ class Database
   private function connect()
   {
     try {
-      $this->connection = new PDO(
-          'mysql:host=' . $this->host . ';dbname=' . $this->dbname . ';charset=utf8',
-          $this->username,
-          $this->password
-      );
+      $this->connection = new PDO('mysql:host=' . $this->host . ';dbname=' . $this->dbname . ';charset=utf8', $this->username, $this->password);
       $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     } 
     catch (PDOException $e) {
@@ -42,6 +38,22 @@ class Database
     }
     catch (PDOException $e) {
       throw new Exception('Erro na consulta ao banco de dados: ' . $e->getMessage());
+    }
+  }
+
+  public function insert($query, $params = [])
+  {
+    $stmt = $this->connection->prepare($query);
+
+    foreach ($params as $key => &$value) {
+      $stmt->bindParam(":$key", $value);
+    }
+
+    try {
+      return $stmt->execute();
+    }
+    catch (PDOException $e) {
+      throw new Exception('Erro ao adicionar no banco de dados');
     }
   }
 }
