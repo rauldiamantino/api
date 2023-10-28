@@ -45,15 +45,43 @@ class Database
   {
     $stmt = $this->connection->prepare($query);
 
-    foreach ($params as $key => &$value) {
+    foreach ($params as $key => &$value):
       $stmt->bindParam(":$key", $value);
-    }
+    endforeach;
 
     try {
-      return $stmt->execute();
+      $stmt->execute();
+
+      if ($stmt->rowCount() === 0) {
+        return false;
+      }
+
+      return true;
     }
     catch (PDOException $e) {
       throw new Exception('Erro ao adicionar no banco de dados');
+    }
+  }
+
+  public function delete($sql, $params = [])
+  {
+    $stmt = $this->connection->prepare($sql);
+
+    foreach ($params as $key => &$value):
+      $stmt->bindParam(":$key", $value);
+    endforeach;
+
+    try {
+      $stmt->execute();
+
+      if ($stmt->rowCount() === 0) {
+          return false;
+      }
+
+      return true;
+    }
+    catch (PDOException $e) {
+      throw new Exception('Erro ao apagar registro do banco de dados');
     }
   }
 }

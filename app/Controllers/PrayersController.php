@@ -4,12 +4,10 @@ require_once '../app/Models/PrayersModel.php';
 class PrayersController
 {
   public $prayersModel;
-  public $prayersExceptions;
 
   public function __construct()
   {
     $this->prayersModel = new PrayersModel();
-    $this->prayersExceptions = new stdClass();
   }
 
   public function get($id = null)
@@ -23,147 +21,158 @@ class PrayersController
       $result = $this->prayersModel->selectAllPrayers();
     }
 
-    if ($result) {
-      http_response_code(200);
-      echo json_encode(['status' => 'success', 'data' => $result ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-      exit;
+    if (empty($result)) {
+      $response = [
+        'httpCode' => 400,
+        'status' => 'error',
+        'message' => ['Nenhum pedido de oração encontrado'],
+        'data' => []
+      ];
+
+      return $response;
     }
 
-    http_response_code(400);
-    $response = ['status' => 'error', 'data' => ['message' => 'Nenhum pedido de oração encontrado']];
-    echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    exit;
+    $response = [
+      'httpCode' => 200,
+      'status' => 'success',
+      'message' => ['Registro(s) encontrado(s)'],
+      'data' => $result
+    ];
+
+    return $response;
   }
 
   public function post()
   {
-    $this->validateHeaders();
-    $request = json_decode(file_get_contents("php://input"), true);
+    $invalidHeader = $this->validateHeaders();
 
-    $bodyRequest = [
-      'userId' => $request['userId'],
-      'title' => $request['title'],
-      'description' => $request['description'],
-      'status' => $request['status'],
-      'createdAt' => $request['createdAt'],
-      'updatedAt' => $request['updatedAt'],
+    if ($invalidHeader) {
+      return $invalidHeader;
+    }
+
+    $requestJson = file_get_contents("php://input");
+    $requestArray = json_decode($requestJson, true);
+
+    if (empty($requestArray)) {
+      $response = [
+        'httpCode' => 400,
+        'status' => 'error',
+        'message' => ['Requisição inválida'],
+        'data' => []
+      ];
+
+      return $response;
+    }
+
+    $errorsRequestBody = $this->validateRequestBody($requestArray);
+
+    if ($errorsRequestBody) {
+      $response = [
+        'httpCode' => 400,
+        'status' => 'error',
+        'message' => $errorsRequestBody,
+        'data' => []
+      ];
+
+      return $response;
+    }
+
+    if ($requestArray['status'] === false) {
+      $requestArray['status'] = 0;
+    }
+
+    if (empty($this->prayersModel->addPrayer($requestArray))) {
+      return false;
+    }
+
+    $response = [
+      'httpCode' => 201, 
+      'status' => 'success', 
+      'message' => ['Pedido de oração cadastrado'], 
+      'data' => []
     ];
 
-    $message = [];
-    foreach ($bodyRequest as $key => $value):
-      if ($key == 'userId') {
-        $message[ $key ] = ['message' => $this->validateUserId($value)];
-      }
-      elseif ($key == 'title') {
-        $message[ $key ] = ['message' => $this->validateTitle($value)];
-      }
-      elseif ($key == 'description') {
-        $message[ $key ] = ['message' => $this->validateDescription($value)];
-      }
-      elseif ($key == 'status') {
-        $message[ $key ] = ['message' => $this->validateStatus($value)];
-      }
-      elseif ($key == 'createdAt') {
-        $message[ $key ] = ['message' => $this->validateCreatedAt($value)];
-      }
-      elseif ($key == 'updatedAt') {
-        $message[ $key ] = ['message' => $this->validateUpdatedAt($value)];
-      }
-
-      if (empty($message[ $key ]['message'])) {
-        unset($message[ $key ]);
-      }
-    endforeach;
-
-    if ($message) {
-      http_response_code(400);
-      echo json_encode($message, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-      exit;
-    }
-
-    if ($this->prayersModel->addPrayer($bodyRequest)) {
-      http_response_code(201);
-      $response = ['status' => 'success', 'data' => ['message' => 'Pedido de oração cadastrado com sucesso!']];
-      echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-      exit;
-    }
-
-    http_response_code(400);
-    $message = ['status' => 'error', 'data' => ['message' => 'Erro ao cadastrar pedido de oração.']];
-    echo json_encode($message, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    exit;
+    return $response;
   }
 
   public function put($id)
   {
-    $this->validateHeaders();
-    $request = json_decode(file_get_contents("php://input"), true);
+    $invalidHeader = $this->validateHeaders();
 
-    // revisar
-    if (empty($id)) {
-      http_response_code(400);
-      $response = ['status' => 'error', 'data' => ['message' => 'Informe o id do pedido de oração!']];
-      echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-      exit;
+    if ($invalidHeader) {
+      return $invalidHeader;
     }
 
-    $bodyRequest = [
-      'userId' => $request['userId'],
-      'title' => $request['title'],
-      'description' => $request['description'],
-      'status' => $request['status'],
-      'createdAt' => $request['createdAt'],
-      'updatedAt' => $request['updatedAt'],
+    $requestJson = file_get_contents("php://input");
+    $requestArray = json_decode($requestJson, true);
+
+    if (empty($id) or empty($requestArray)) {
+      $response = [
+        'httpCode' => 400,
+        'status' => 'error',
+        'message' => ['Requisição inválida'],
+        'data' => []
+      ];
+
+      return $response;
+    }
+
+    $errorsRequestBody = $this->validateRequestBody($requestArray);
+
+    if ($errorsRequestBody) {
+      $response = [
+        'httpCode' => 400,
+        'status' => 'error',
+        'message' => $errorsRequestBody,
+        'data' => []
+      ];
+
+      return $response;
+    }
+
+    if ($requestArray['status'] === false) {
+      $requestArray['status'] = 0;
+    }
+
+    if (empty($this->prayersModel->updatePrayer($requestArray, $id))) {
+      return false;
+    }
+
+    $response = [
+      'httpCode' => 201, 
+      'status' => 'success', 
+      'message' => ['Pedido de oração atualizado'], 
+      'data' => []
     ];
 
-    $message = [];
-    foreach ($bodyRequest as $key => $value):
-      if ($key == 'userId') {
-        $message[ $key ] = ['message' => $this->validateUserId($value)];
-      }
-      elseif ($key == 'title') {
-        $message[ $key ] = ['message' => $this->validateTitle($value)];
-      }
-      elseif ($key == 'description') {
-        $message[ $key ] = ['message' => $this->validateDescription($value)];
-      }
-      elseif ($key == 'status') {
-        $message[ $key ] = ['message' => $this->validateStatus($value)];
-      }
-      elseif ($key == 'createdAt') {
-        $message[ $key ] = ['message' => $this->validateCreatedAt($value)];
-      }
-      elseif ($key == 'updatedAt') {
-        $message[ $key ] = ['message' => $this->validateUpdatedAt($value)];
-      }
-
-      if (empty($message[ $key ]['message'])) {
-        unset($message[ $key ]);
-      }
-    endforeach;
-
-    if ($message) {
-      http_response_code(400);
-      echo json_encode($message, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-      exit;
-    }
-
-    if ($this->prayersModel->updatePrayer($bodyRequest, $id)) {
-      http_response_code(201);
-      $response = ['status' => 'success', 'data' => ['message' => 'Pedido de oração atualizado com sucesso!']];
-      echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-      exit;
-    }
-
-    http_response_code(400);
-    $message = ['status' => 'error', 'data' => ['message' => 'Erro ao atualizar pedido de oração.']];
-    echo json_encode($message, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    exit;
+    return $response;
   }
 
-  public function delete()
+  public function delete($id)
   {
-    return 'delete';
+    if (empty($id)) {
+      $response = [
+        'httpCode' => 400,
+        'status' => 'error',
+        'message' => ['Requisição inválida'],
+        'data' => []
+      ];
+
+      return $response;
+    }
+
+    if (empty($this->prayersModel->deletePrayer($id))) {
+      return false;
+    }
+
+    $response = [
+      'httpCode' => 201,
+      'status' => 'success',
+      'message' => ['Pedido de oração excluído'],
+      'data' => []
+    ];
+
+    return $response;
   }
 
   private function validateHeaders()
@@ -171,81 +180,39 @@ class PrayersController
     $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
 
     if (empty($contentType)) {
-      throw new Exception('O cabeçalho Content-Type: application/json é obrigatório.', 400);
+      $response = [
+        'httpCode' => 400,
+        'status' => 'error',
+        'message' => ['O cabeçalho Content-Type: application/json é obrigatório'],
+        'data' => []
+      ];
+
+      return $response;
     }
 
     if ($contentType !== 'application/json') {
-      throw new Exception('Content-Type não suportado, use application/json', 415);
+      $response = [
+        'httpCode' => 415,
+        'status' => 'error',
+        'message' => ['Content-Type não suportado, use application/json'],
+        'data' => []
+      ];
+
+      return $response;
     }
   }
 
-  private function validateUserId($userId)
+  private function validateRequestBody($request)
   {
-    if (empty($userId)) {
-      return 'Não pode ser vazio.';
-    }
-    if (is_int($userId) == false or $userId < 1) {
-      return 'Tipo inválido ou valor menor que 1.';
-    }
-    elseif (empty($userId)) {
-      return 'Não pode ser vazio.';
-    }
-  }
+    $errors = [];
+    $errors[] = Validator::validateUserId($request['userId']);
+    $errors[] = Validator::validateTitle($request['title']);
+    $errors[] = Validator::validateDescription($request['description']);
+    $errors[] = Validator::validateStatus($request['status']);
+    $errors[] = Validator::validateCreatedAt($request['createdAt']);
+    $errors[] = Validator::validateUpdatedAt($request['updatedAt']);
 
-  private function validateTitle($title)
-  {
-    if (empty($title)) {
-      return 'Não pode ser vazio.';
-    }
-    elseif (is_string($title) == false) {
-      return 'Tipo inválido.';
-    }
-    elseif (strlen($title) == 80) {
-      $message['status'] = 'error';
-      return 'Quantidade de caracteres excedida.';
-    }
-  }
-
-  private function validateDescription($description)
-  {
-    if (empty($description)) {
-      return 'Não pode ser vazio.';
-    }
-    elseif (is_string($description) == false) {
-      return 'Tipo inválido.';
-    }
-    elseif (strlen($description) == 80) {
-      return 'Quantidade de caracteres excedida.';
-    }
-  }
-
-  private function validateStatus($status)
-  {
-    if (empty($status)) {
-      return 'Não pode ser vazio.';
-    }
-    elseif (is_bool($status) == false) {
-      return 'Tipo inválido.';
-    }
-  }
-
-  private function validateCreatedAt($createdAt)
-  {
-    if (empty($createdAt)) {
-      return 'Não pode ser vazio.';
-    }
-    elseif (DateTime::createFromFormat('Y-m-d', $createdAt) == false) {
-      return 'Formato de data inválida.';
-    }
-  }
-
-  private function validateUpdatedAt($updatedAt)
-  {
-    if (empty($updatedAt)) {
-      return 'Não pode ser vazio.';
-    }
-    elseif (DateTime::createFromFormat('Y-m-d', $updatedAt) == false) {
-      return 'Formato de data inválida.';
-    }
+    $validErrors = array_filter($errors);
+    return $validErrors;
   }
 }

@@ -1,5 +1,5 @@
 <?php
-require_once '../config/Database.php';
+require_once 'Database.php';
 
 class PrayersModel
 {
@@ -44,12 +44,15 @@ class PrayersModel
     return $result;
   }
 
-  // revisar
   public function updatePrayer($data, $id)
   {
-    var_dump($data);
-    $query = 'UPDATE prayer_requests 
-              SET user_id = :user_id, title = :title, description = :description, status = :status, created_at = :created_at, updated_at = :updated_at
+    $query = 'UPDATE prayer_requests
+              SET user_id = :user_id,
+                  title = :title,
+                  description = :description,
+                  status = :status, 
+                  created_at = :created_at,
+                  updated_at = :updated_at
               WHERE id = :id';
 
     $params = [
@@ -63,6 +66,17 @@ class PrayersModel
     ];
 
     $result = $this->database->insert($query, $params);
+    return $result;
+  }
+
+  public function deletePrayer($id)
+  {
+    $query = 'DELETE FROM prayer_requests
+              WHERE id = :id';
+
+    $params = ['id' => $id ];
+
+    $result = $this->database->delete($query, $params);
     return $result;
   }
 }
