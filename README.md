@@ -1,3 +1,3 @@
 # prayforme
 
-API Backend em desenvolvimento
+API em desenvolvimento
