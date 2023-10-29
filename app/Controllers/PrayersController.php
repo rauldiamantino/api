@@ -1,16 +1,36 @@
 <?php
 require_once '../app/Models/PrayersModel.php';
 
+/**
+ * PrayersController - Provides methods to retrieve, create, update and delete prayer requests
+ */
 class PrayersController
-{
+{  
+  /**
+   * prayersModel
+   *
+   * @var object
+   */
   public $prayersModel;
-
+  
+  /**
+   *
+   * __construct - Initializes the model responsible for prayer requests
+   *
+   * @return void
+   */
   public function __construct()
   {
     $this->prayersModel = new PrayersModel();
   }
-
-  public function get($id = null)
+  
+  /**
+   * get - Gets a prayer request or list of all prayer requests
+   *
+   * @param int $id - The ID of the prayer request to be obtained (Optional)
+   * @return array - Returns an array with the details of the order or all orders
+   */
+  public function get(int $id = 0): array
   {
     $result = [];
 
@@ -41,8 +61,13 @@ class PrayersController
 
     return $response;
   }
-
-  public function post()
+  
+  /**
+   * post - Register prayer request in the database
+   *
+   * @return array - Returns an array with the request response
+   */
+  public function post(): array
   {
     $requestJson = file_get_contents("php://input");
     $requestArray = json_decode($requestJson, true);
@@ -76,7 +101,14 @@ class PrayersController
     }
 
     if (empty($this->prayersModel->addPrayer($requestArray))) {
-      return false;
+      $response = [
+        'httpCode' => 500,
+        'status' => 'error',
+        'message' => ['Erro interno no servidor'],
+        'data' => []
+      ];
+
+      return $response;
     }
 
     $response = [
@@ -88,8 +120,14 @@ class PrayersController
 
     return $response;
   }
-
-  public function put($id)
+  
+  /**
+   * put - Updates prayer request in the database
+   *
+   * @param int $id - The ID of the prayer request to be updated
+   * @return array - Returns an array with the request response
+   */
+  public function put(int $id): array
   {
     $requestJson = file_get_contents("php://input");
     $requestArray = json_decode($requestJson, true);
@@ -123,7 +161,14 @@ class PrayersController
     }
 
     if (empty($this->prayersModel->updatePrayer($requestArray, $id))) {
-      return false;
+      $response = [
+        'httpCode' => 500,
+        'status' => 'error',
+        'message' => ['Erro interno no servidor'],
+        'data' => []
+      ];
+
+      return $response;
     }
 
     $response = [
@@ -136,7 +181,13 @@ class PrayersController
     return $response;
   }
 
-  public function delete($id)
+  /**
+   * delete - Deletes prayer request in the database
+   *
+   * @param int $id - The ID of the prayer request to be updated
+   * @return array - Returns an array with the request response
+   */
+  public function delete(int $id): array
   {
     if (empty($id)) {
       $response = [
@@ -150,7 +201,13 @@ class PrayersController
     }
 
     if (empty($this->prayersModel->deletePrayer($id))) {
-      return false;
+     $response = [
+        'httpCode' => 500,
+        'status' => 'error',
+        'message' => ['Erro interno no servidor'],
+        'data' => []
+      ];
+
     }
 
     $response = [
@@ -162,8 +219,14 @@ class PrayersController
 
     return $response;
   }
-
-  private function validateRequestBody($request)
+  
+  /**
+   * validateRequestBody - Validates the fields received in the request
+   *
+   * @param $request array - Request fields
+   * @return array - Returns an array with the request response
+   */
+  private function validateRequestBody(array $request): array
   {
     $errors = [];
     $errors[] = Validator::validateUserId($request['userId']);

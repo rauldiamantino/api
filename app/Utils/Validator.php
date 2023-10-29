@@ -1,7 +1,16 @@
 <?php
+/**
+ * Validator - Provides methods to validate the fields of the request body
+ */
 class Validator
-{
-  public static function validateUserId($userId): string
+{  
+  /**
+   * validateUserId - Retrieves User ID and performs validations
+   *
+   * @param  int $userId - The User ID
+   * @return string - Returns error string or empty string
+   */
+  public static function validateUserId(int $userId): string
   {
       if (empty($userId)) {
           return 'O campo \'userId\' não pode ser vazio, nulo ou inexistente';
@@ -14,7 +23,13 @@ class Validator
       return '';
   }
 
-  public static function validateTitle($title): string
+  /**
+   * validateTitle - Retrieves Prayer Request Title and performs validations
+   *
+   * @param  int $title - The prayer request title
+   * @return string - Returns error string or empty string
+   */
+  public static function validateTitle(string $title): string
   {
       if (empty($title)) {
           return 'O campo \'title\' não pode ser vazio, nulo ou inexistente';
@@ -30,8 +45,14 @@ class Validator
 
       return '';
   }
-
-  public static function validateDescription($description): string
+  
+  /**
+   * validateDescription - Retrieves Prayer Request Description and performs validations
+   *
+   * @param  string $description - The prayer request description
+   * @return string - Returns error string or empty string
+   */
+  public static function validateDescription(string $description): string
   {
     if (empty($description)) {
       return 'O campo \'description\' não pode ser vazio, nulo ou inexistente';
@@ -47,8 +68,14 @@ class Validator
 
     return '';
   }
-
-  public static function validateStatus($status): string
+  
+  /**
+   * validateStatus - Retrieves Prayer Request Status and performs validations
+   *
+   * @param  string $status - The prayer request status
+   * @return string - Returns error string or empty string
+   */
+  public static function validateStatus(string $status): string
   {
     if (! is_bool($status)) {
       return 'Tipo inválido para o campo \'status\'/campo vazio ou nulo';
@@ -56,8 +83,14 @@ class Validator
 
     return '';
   }
-
-  public static function validateCreatedAt($createdAt): string
+  
+  /**
+   * validateCreatedAt - Retrieves Prayer Request CreatedAt and performs validations
+   *
+   * @param  string $createdAt - The prayer request createdAt
+   * @return string - Returns error string or empty string
+   */
+  public static function validateCreatedAt(string $createdAt): string
   {
     if (empty($createdAt)) {
       return 'O campo \'createdAt\' não pode ser vazio, nulo ou inexistente';
@@ -70,7 +103,13 @@ class Validator
     return '';
   }
 
-  public static function validateUpdatedAt($updatedAt): string
+  /**
+   * validateUpdateddAt - Retrieves Prayer Request updatedAt and performs validations
+   *
+   * @param  string $updatedAt - The prayer request updatedAt
+   * @return string - Returns error string or empty string
+   */
+  public static function validateUpdatedAt(string $updatedAt): string
   {
     if (empty($updatedAt)) {
       return 'O campo \'updatedAt\' Não pode ser vazio, nulo ou inexistente';

@@ -1,6 +1,14 @@
 <?php
+/**
+ * Routes - Manages the application routing system
+ */
 class Routes
-{
+{  
+  /**
+   * defineRoutes - Retrieves the path and directs the application
+   *
+   * @return void
+   */
   public static function defineRoutes(): void
   {
     $arrayUri = explode('/', $_SERVER['REQUEST_URI']);
@@ -10,7 +18,13 @@ class Routes
       self::apiRequest($arrayUri);
     }
   }
-
+  
+  /**
+   * apiRequest - Retrieves the routes and directs for the controllers
+   *
+   * @param  array $arrayUri - The path with the routes related to our API
+   * @return void
+   */
   private static function apiRequest($arrayUri): void
   {
     if (Authenticator::authenticate() === false) {
