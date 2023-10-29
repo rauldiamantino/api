@@ -44,12 +44,6 @@ class PrayersController
 
   public function post()
   {
-    $invalidHeader = $this->validateHeaders();
-
-    if ($invalidHeader) {
-      return $invalidHeader;
-    }
-
     $requestJson = file_get_contents("php://input");
     $requestArray = json_decode($requestJson, true);
 
@@ -97,12 +91,6 @@ class PrayersController
 
   public function put($id)
   {
-    $invalidHeader = $this->validateHeaders();
-
-    if ($invalidHeader) {
-      return $invalidHeader;
-    }
-
     $requestJson = file_get_contents("php://input");
     $requestArray = json_decode($requestJson, true);
 
@@ -173,33 +161,6 @@ class PrayersController
     ];
 
     return $response;
-  }
-
-  private function validateHeaders()
-  {
-    $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
-
-    if (empty($contentType)) {
-      $response = [
-        'httpCode' => 400,
-        'status' => 'error',
-        'message' => ['O cabeçalho Content-Type: application/json é obrigatório'],
-        'data' => []
-      ];
-
-      return $response;
-    }
-
-    if ($contentType !== 'application/json') {
-      $response = [
-        'httpCode' => 415,
-        'status' => 'error',
-        'message' => ['Content-Type não suportado, use application/json'],
-        'data' => []
-      ];
-
-      return $response;
-    }
   }
 
   private function validateRequestBody($request)
