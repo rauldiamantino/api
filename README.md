@@ -1,3 +1,1 @@
-# prayforme
-
-API em desenvolvimento
+# API em desenvolvimento
